@@ -1,13 +1,11 @@
 {
-	"name": "@drift-labs/keeper-bots-v2",
+	"name": "@velocity-exchange/keeper-bots-v2",
 	"version": "0.1.0",
 	"author": "crispheaney",
 	"main": "lib/index.js",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@drift-labs/common": "patch:@drift-labs/common@npm%3A1.0.20#~/.yarn/patches/@drift-labs-common-npm-1.0.20-cf92dd0082.patch",
 		"@drift-labs/jit-proxy": "0.21.171",
-		"@drift-labs/sdk": "2.163.0-beta.13",
 		"@opentelemetry/api": "1.7.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.62.1",
 		"@opentelemetry/exporter-prometheus": "0.31.0",
@@ -22,6 +20,8 @@
 		"@types/minimist": "1.2.5",
 		"@types/mocha": "10.0.6",
 		"@types/node": "24.0.0",
+		"@velocity-exchange/common": "0.0.1",
+		"@velocity-exchange/sdk": "0.0.3",
 		"async": "3.2.5",
 		"async-mutex": "0.3.2",
 		"aws-sdk": "2.1511.0",
@@ -55,7 +55,8 @@
 		"simple-swizzle": "0.2.2",
 		"is-arrayish": "0.3.2",
 		"log-symbols": "4.1.0",
-		"@drift-labs/sdk": "2.163.0-beta.13"
+		"@drift-labs/sdk": "npm:@velocity-exchange/sdk@0.0.3",
+		"@velocity-exchange/sdk": "0.0.3"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.11",

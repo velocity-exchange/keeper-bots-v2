@@ -13,8 +13,7 @@ import {
 	TxSigAndSlot,
 	PythLazerSubscriber,
 	PythLazerPriceFeedArray,
-	PriceUpdateAccount,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	AddressLookupTableAccount,
 	ComputeBudgetProgram,
@@ -40,7 +39,6 @@ const DEFAULT_INTEVAL_MS = 30000;
 
 export class PythLazerCrankerBot implements Bot {
 	private pythLazerClient?: PythLazerSubscriber;
-	readonly decodeFunc: (name: string, data: Buffer) => PriceUpdateAccount;
 
 	public name: string;
 	public dryRun: boolean;
@@ -69,11 +67,6 @@ export class PythLazerCrankerBot implements Bot {
 		if (!this.globalConfig.lazerEndpoints || !this.globalConfig.lazerToken) {
 			throw new Error('Missing lazerEndpoint or lazerToken in global config');
 		}
-
-		this.decodeFunc =
-			this.driftClient.program.account.pythLazerOracle.coder.accounts.decodeUnchecked.bind(
-				this.driftClient.program.account.pythLazerOracle.coder.accounts
-			);
 
 		this.blockhashSubscriber = new BlockhashSubscriber({
 			connection: driftClient.connection,

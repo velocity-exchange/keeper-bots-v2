@@ -7,7 +7,7 @@ import {
 	LPPoolAccount,
 	PriorityFeeMethod,
 	PriorityFeeSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { ComputeBudgetProgram } from '@solana/web3.js';
 import { simulateAndGetTxWithCUs } from '../../utils';
 

@@ -9,7 +9,6 @@ import {
 	isVariant,
 	DLOBNode,
 	BN,
-	PhoenixV1FulfillmentConfigAccount,
 	TEN,
 	SlotSubscriber,
 	DataAndSlot,
@@ -18,8 +17,7 @@ import {
 	UserAccount,
 	decodeUser,
 	PriorityFeeSubscriberMap,
-	OpenbookV2FulfillmentConfigAccount,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	Connection,
 	AddressLookupTableAccount,
@@ -51,7 +49,6 @@ import {
 	getNodeToFillSignature,
 	getTransactionAccountMetas,
 	handleSimResultError,
-	initializeSpotFulfillmentAccounts,
 	logMessageForNodeToFill,
 	simulateAndGetTxWithCUs,
 	sleepMs,
@@ -177,15 +174,6 @@ export class SpotFillerMultithreaded {
 
 	private userStatsMap?: UserStatsMap;
 	protected hasEnoughSolToFill: boolean = true;
-
-	private phoenixFulfillmentConfigMap: Map<
-		number,
-		PhoenixV1FulfillmentConfigAccount
-	>;
-	private openbookFulfillmentConfigMap: Map<
-		number,
-		OpenbookV2FulfillmentConfigAccount
-	>;
 
 	private intervalIds: Array<NodeJS.Timer> = [];
 	private throttledNodes = new Map<string, number>();
@@ -314,15 +302,6 @@ export class SpotFillerMultithreaded {
 			throw new Error(`Subaccount ${this.subaccount} not found in driftClient`);
 		}
 
-		this.phoenixFulfillmentConfigMap = new Map<
-			number,
-			PhoenixV1FulfillmentConfigAccount
-		>();
-		this.openbookFulfillmentConfigMap = new Map<
-			number,
-			OpenbookV2FulfillmentConfigAccount
-		>();
-
 		if (
 			config.rebalanceFiller &&
 			this.runtimeSpec.driftEnv === 'mainnet-beta'
@@ -396,11 +375,6 @@ export class SpotFillerMultithreaded {
 		logger.info(
 			`${this.name}: hasEnoughSolToFill: ${this.hasEnoughSolToFill}, balance: ${fillerSolBalance}`
 		);
-
-		({
-			phoenixFulfillmentConfigs: this.phoenixFulfillmentConfigMap,
-			openbookFulfillmentConfigs: this.openbookFulfillmentConfigMap,
-		} = await initializeSpotFulfillmentAccounts(this.driftClient, false));
 
 		this.startProcesses();
 		logger.info(`${this.name}: Initialized`);
@@ -901,27 +875,12 @@ export class SpotFillerMultithreaded {
 			? nodeToFill.fallbackBidSource
 			: nodeToFill.fallbackAskSource;
 
-		let fulfillmentConfig:
-			| PhoenixV1FulfillmentConfigAccount
-			| OpenbookV2FulfillmentConfigAccount
-			| undefined = undefined;
-		if (fallbackSource === 'phoenix') {
-			const cfg = this.phoenixFulfillmentConfigMap.get(
-				nodeToFill.node.order!.marketIndex
-			);
-			if (cfg && isVariant(cfg.status, 'enabled')) {
-				fulfillmentConfig = cfg;
-			}
-		} else if (fallbackSource === 'openbook') {
-			const cfg = this.openbookFulfillmentConfigMap.get(
-				nodeToFill.node.order!.marketIndex
-			);
-			if (cfg && isVariant(cfg.status, 'enabled')) {
-				fulfillmentConfig = cfg;
-			}
-		} else {
-			logger.error(
-				`makerInfo doesnt exist and unknown fallback source: ${fallbackSource} (fillTxId: ${fillTxId})`
+		// Phoenix/OpenbookV2 fulfillment configs removed from velocity SDK; spot
+		// fills now always rely on the DLOB makers (no external fulfillment).
+		const fulfillmentConfig = undefined;
+		if (fallbackSource) {
+			logger.warn(
+				`makerInfo doesnt exist and external fulfillment is no longer supported (fallbackSource: ${fallbackSource}, fillTxId: ${fillTxId})`
 			);
 		}
 

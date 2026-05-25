@@ -28,7 +28,7 @@ import {
 	TxSigAndSlot,
 	UserAccount,
 	UserMap,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { FillerMultiThreadedConfig, GlobalConfig } from '../../config';
 import { JITO_METRIC_TYPES, BundleSender } from '../../bundleSender';
 import {

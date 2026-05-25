@@ -24,7 +24,7 @@ import {
 	calculateClaimablePnl,
 	isOperationPaused,
 	PerpOperation,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import {
@@ -45,7 +45,10 @@ import { Bot } from '../types';
 import { RuntimeSpec, metricAttrFromUserAccount } from '../metrics';
 import { webhookMessage } from '../webhook';
 import { LiquidatorConfig } from '../config';
-import { getPerpMarketTierNumber, perpTierIsAsSafeAs } from '@drift-labs/sdk';
+import {
+	getPerpMarketTierNumber,
+	perpTierIsAsSafeAs,
+} from '@velocity-exchange/sdk';
 import {
 	ComputeBudgetProgram,
 	PublicKey,
@@ -1597,7 +1600,6 @@ export class LiquidatorBot implements Bot {
 				// less attractive, perp / perp pnl liquidations
 				let liquidateeHasPerpPos = false;
 				let liquidateeHasUnsettledPerpPnl = false;
-				let liquidateeHasLpPos = false;
 				let liquidateePerpIndexWithOpenOrders = -1;
 
 				// shuffle user perp positions to get good position coverage in case some
@@ -1635,7 +1637,6 @@ export class LiquidatorBot implements Bot {
 					liquidateeHasPerpPos =
 						!liquidateePosition.baseAssetAmount.isZero() ||
 						!liquidateePosition.quoteAssetAmount.isZero();
-					liquidateeHasLpPos = !liquidateePosition.lpShares.isZero();
 
 					const tryLiqPerp =
 						liquidateeHasUnsettledPerpPnl &&
@@ -1682,21 +1683,6 @@ export class LiquidatorBot implements Bot {
 							liquidateePosition.marketIndex,
 							subAccountToLiqPerp,
 							baseAmountToLiquidate
-						);
-						if (sent) {
-							liquidatePerpSent++;
-						}
-					} else if (liquidateeHasLpPos) {
-						logger.info(
-							`liquidatePerp ${auth}-${user.userAccountPublicKey.toBase58()} on market ${
-								liquidateePosition.marketIndex
-							} has lp shares but no perp pos, trying to clear it:`
-						);
-						const sent = await this.liqPerp(
-							user,
-							liquidateePosition.marketIndex,
-							subAccountToLiqPerp,
-							ZERO
 						);
 						if (sent) {
 							liquidatePerpSent++;

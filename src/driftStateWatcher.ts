@@ -5,7 +5,7 @@ import {
 	PerpMarketAccount,
 	SpotMarketAccount,
 	StateAccount,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 
 export type StateChecks = {
 	/// set true to check for new perp markets

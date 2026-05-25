@@ -35,7 +35,7 @@ import {
 	PositionDirection,
 	PerpMarkets,
 	MMOraclePriceData,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 
 import {
@@ -100,7 +100,7 @@ import { LRUCache } from 'lru-cache';
 import { bs58 } from '@project-serum/anchor/dist/cjs/utils/bytes';
 import { TxThreaded } from './common/txThreaded';
 import { NodeToTriggerWithMakers } from '../experimental-bots/filler-common/types';
-import { PythLazerSubscriber } from '@drift-labs/sdk';
+import { PythLazerSubscriber } from '@velocity-exchange/sdk';
 
 const TX_COUNT_COOLDOWN_ON_BURST = 10; // send this many tx before resetting burst mode
 const FILL_ORDER_THROTTLE_BACKOFF = 1000; // the time to wait before trying to fill a throttled (error filling) node again

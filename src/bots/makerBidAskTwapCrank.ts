@@ -14,7 +14,7 @@ import {
 	getVariant,
 	PerpMarkets,
 	BlockhashSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
 import { logger } from '../logger';
@@ -665,38 +665,12 @@ export class MakerBidAskTwapCrank implements Bot {
 					`[${this.name}] loaded makers for market ${mi}: ${bidMakers.length} bids, ${askMakers.length} asks`
 				);
 
-				const usingSwitchboardOnDemand = isVariant(
-					this.driftClient.getPerpMarketAccount(mi)!.amm.oracleSource,
-					'switchboardOnDemand'
-				);
-
 				const ixs = [];
-				if (usingSwitchboardOnDemand) {
-					const switchboardIx =
-						await this.driftClient.getPostManySwitchboardOnDemandUpdatesAtomicIxs(
-							[this.driftClient.getPerpMarketAccount(mi)!.amm.oracle],
-							undefined,
-							askMakers.length + bidMakers.length > 3 ? 2 : 3
-						);
-					if (switchboardIx) {
-						ixs.push(...switchboardIx);
-						ixs.push(
-							ComputeBudgetProgram.setComputeUnitLimit({
-								units: 120_000, // switchboard simulation is unreliable, use hardcoded CU limit
-							})
-						);
-					} else {
-						logger.error(
-							`[${this.name}] failed to get switchboardIx for market: ${mi}`
-						);
-					}
-				} else {
-					ixs.push(
-						ComputeBudgetProgram.setComputeUnitLimit({
-							units: 1_400_000, // will be overwritten by simulateAndGetTxWithCUs
-						})
-					);
-				}
+				ixs.push(
+					ComputeBudgetProgram.setComputeUnitLimit({
+						units: 1_400_000, // will be overwritten by simulateAndGetTxWithCUs
+					})
+				);
 
 				// add priority fees if not using jito
 				if (!forceUseJito) {
@@ -765,11 +739,7 @@ export class MakerBidAskTwapCrank implements Bot {
 					if (addTipIx) {
 						ixs.push(this.bundleSender!.getTipIx());
 					}
-					const txToSend = await this.buildTransaction(
-						mi,
-						ixs,
-						!usingSwitchboardOnDemand
-					);
+					const txToSend = await this.buildTransaction(mi, ixs);
 					if (txToSend) {
 						// @ts-ignore;
 						txToSend.sign(jitoSigners);
@@ -779,11 +749,7 @@ export class MakerBidAskTwapCrank implements Bot {
 						return { restartSignal: false };
 					}
 				} else {
-					const txToSend = await this.buildTransaction(
-						mi,
-						ixs,
-						!usingSwitchboardOnDemand
-					);
+					const txToSend = await this.buildTransaction(mi, ixs);
 					if (txToSend) {
 						await this.sendSingleTx(mi, txToSend);
 					} else {

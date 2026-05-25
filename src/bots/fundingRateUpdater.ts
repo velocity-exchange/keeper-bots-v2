@@ -10,8 +10,7 @@ import {
 	PublicKey,
 	PriorityFeeSubscriberMap,
 	DriftMarketInfo,
-	isVariant,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
 import { getErrorCode, getErrorCodeFromSimError } from '../error';
@@ -259,16 +258,6 @@ export class FundingRateUpdaterBot implements Bot {
 				microLamports,
 			}),
 		];
-		const perpMarket = this.driftClient.getPerpMarketAccount(marketIndex);
-		if (isVariant(perpMarket?.amm.oracleSource, 'switchboardOnDemand')) {
-			const crankIx =
-				await this.driftClient.getPostSwitchboardOnDemandUpdateAtomicIx(
-					perpMarket!.amm.oracle
-				);
-			if (crankIx) {
-				ixs.push(crankIx);
-			}
-		}
 		ixs.push(
 			await this.driftClient.getUpdateFundingRateIx(marketIndex, oracle)
 		);

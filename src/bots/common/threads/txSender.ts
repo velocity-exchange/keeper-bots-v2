@@ -16,7 +16,7 @@ import {
 	BlockhashSubscriber,
 	loadKeypair,
 	SlotSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	Connection,
 	BlockhashWithExpiryBlockHeight,

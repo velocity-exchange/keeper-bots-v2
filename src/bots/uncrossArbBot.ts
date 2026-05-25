@@ -15,7 +15,7 @@ import {
 	TxSigAndSlot,
 	ZERO,
 	PriorityFeeSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 import { logger } from '../logger';
 import { Bot } from '../types';
@@ -391,7 +391,7 @@ export class UncrossArbBot implements Bot {
 					const perpMarketAccount =
 						this.driftClient.getPerpMarketAccount(perpIdx)!;
 					const oraclePriceData =
-						this.driftClient.getOracleDataForPerpMarket(perpIdx);
+						this.driftClient.getMMOracleDataForPerpMarket(perpIdx);
 
 					// Go through throttled nodes so we can exlcude them
 					const excludedPubKeysOrderIdPairs: [string, number][] = [];

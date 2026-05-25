@@ -5,7 +5,7 @@ import {
 	ZERO,
 	PriorityFeeSubscriberMap,
 	DriftMarketInfo,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
 import { getErrorCode } from '../error';

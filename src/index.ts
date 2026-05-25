@@ -38,8 +38,8 @@ import {
 	configs,
 	AuctionSubscriber,
 	SwiftOrderSubscriber,
-} from '@drift-labs/sdk';
-import { promiseTimeout } from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
+import { promiseTimeout } from '@velocity-exchange/sdk';
 
 import { logger, setLogLevel } from './logger';
 import { constants } from './types';
@@ -72,7 +72,6 @@ import { MakerBidAskTwapCrank } from './bots/makerBidAskTwapCrank';
 import { BundleSender } from './bundleSender';
 import { DriftStateWatcher, StateChecks } from './driftStateWatcher';
 import { webhookMessage } from './webhook';
-import { SwitchboardCrankerBot } from './bots/switchboardCranker';
 import { PythLazerCrankerBot } from './bots/pythLazerCranker';
 import { JitMaker } from './bots/jitMaker';
 import { JitProxyClient, JitterSniper } from '@drift-labs/jit-proxy/lib';
@@ -449,14 +448,18 @@ const runBot = async () => {
 
 	let eventSubscriber: EventSubscriber | undefined = undefined;
 	if (config.global.eventSubscriber) {
-		eventSubscriber = new EventSubscriber(connection, driftClient.program, {
-			maxTx: 4096,
-			maxEventsPerType: 4096,
-			orderBy: 'blockchain', // Possible options are 'blockchain' or 'client'
-			orderDir: 'desc',
-			commitment: stateCommitment,
-			logProviderConfig,
-		});
+		eventSubscriber = new EventSubscriber(
+			connection,
+			driftClient.program as any,
+			{
+				maxTx: 4096,
+				maxEventsPerType: 4096,
+				orderBy: 'blockchain', // Possible options are 'blockchain' or 'client'
+				orderDir: 'desc',
+				commitment: stateCommitment,
+				logProviderConfig,
+			}
+		);
 	}
 
 	const slotSubscriber = new SlotSubscriber(connection, {});
@@ -582,21 +585,6 @@ const runBot = async () => {
 				config.botConfigs!.pythLazerCranker!,
 				driftClient,
 				priorityFeeSubscriber,
-				[]
-			)
-		);
-	}
-	if (configHasBot(config, 'switchboardCranker')) {
-		needPriorityFeeSubscriber = true;
-		needDriftStateWatcher = true;
-
-		bots.push(
-			new SwitchboardCrankerBot(
-				config.global,
-				config.botConfigs!.switchboardCranker!,
-				driftClient,
-				priorityFeeSubscriber,
-				bundleSender,
 				[]
 			)
 		);
@@ -788,9 +776,7 @@ const runBot = async () => {
 				config.botConfigs!.liquidator!,
 				config.global.subaccounts![0],
 				priorityFeeSubscriber,
-				sdkConfig.SERUM_LOOKUP_TABLE
-					? new PublicKey(sdkConfig.SERUM_LOOKUP_TABLE as string)
-					: undefined
+				undefined
 			)
 		);
 	}

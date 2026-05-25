@@ -24,7 +24,7 @@ import {
 	StateAccount,
 	DriftEnv,
 	SignedMsgOrderNode,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { ComputeBudgetProgram, Connection, PublicKey } from '@solana/web3.js';
 import {
 	SerializedUserAccount,
@@ -49,7 +49,6 @@ export const serializeUserAccount = (
 		orders: userAccount.orders.map(serializeOrder),
 		spotPositions: userAccount.spotPositions.map(serializeSpotPosition),
 		perpPositions: userAccount.perpPositions.map(serializePerpPosition),
-		lastAddPerpLpSharesTs: userAccount.lastAddPerpLpSharesTs?.toString('hex'),
 		settledPerpPnl: userAccount.settledPerpPnl?.toString('hex'),
 		totalDeposits: userAccount.totalDeposits?.toString('hex'),
 		totalWithdraws: userAccount.totalWithdraws?.toString('hex'),
@@ -103,9 +102,6 @@ const serializePerpPosition = (
 		openBids: position.openBids?.toString('hex'),
 		openAsks: position.openAsks?.toString('hex'),
 		settledPnl: position.settledPnl?.toString('hex'),
-		lpShares: position.lpShares?.toString('hex'),
-		lastQuoteAssetAmountPerLp:
-			position.lastQuoteAssetAmountPerLp?.toString('hex'),
 		isolatedPositionScaledBalance:
 			position.isolatedPositionScaledBalance?.toString('hex'),
 		positionFlag: position.positionFlag,
@@ -125,10 +121,6 @@ export const deserializeUserAccount = (
 		),
 		perpPositions: serializedUserAccount.perpPositions.map(
 			deserializePerpPosition
-		),
-		lastAddPerpLpSharesTs: new BN(
-			serializedUserAccount.lastAddPerpLpSharesTs,
-			'hex'
 		),
 		settledPerpPnl: new BN(serializedUserAccount.settledPerpPnl, 'hex'),
 		totalDeposits: new BN(serializedUserAccount.totalDeposits, 'hex'),
@@ -197,11 +189,6 @@ const deserializePerpPosition = (
 		openBids: new BN(serializedPosition.openBids, 'hex'),
 		openAsks: new BN(serializedPosition.openAsks, 'hex'),
 		settledPnl: new BN(serializedPosition.settledPnl, 'hex'),
-		lpShares: new BN(serializedPosition.lpShares, 'hex'),
-		lastQuoteAssetAmountPerLp: new BN(
-			serializedPosition.lastQuoteAssetAmountPerLp,
-			'hex'
-		),
 		isolatedPositionScaledBalance: new BN(
 			serializedPosition.isolatedPositionScaledBalance,
 			'hex'
@@ -213,16 +200,14 @@ const deserializePerpPosition = (
 export const serializeNodeToFill = (
 	node: NodeToFillWithContext,
 	makerAccountDatas: Map<string, Buffer>,
-	isUserProtectedMaker: boolean,
 	userAccountData?: Buffer,
 	authority?: string
 ): SerializedNodeToFill => {
 	return {
-		node: serializeDLOBNode(node.node, isUserProtectedMaker, userAccountData),
+		node: serializeDLOBNode(node.node, userAccountData),
 		makerNodes: node.makerNodes.map((node) => {
 			return serializeDLOBNode(
 				node,
-				isUserProtectedMaker,
 				//@ts-ignore
 				makerAccountDatas.get(node.userAccount)
 			);
@@ -235,7 +220,6 @@ export const serializeNodeToFill = (
 
 const serializeDLOBNode = (
 	node: DLOBNode,
-	isUserProtectedMaker: boolean,
 	userAccountData?: Buffer
 ): SerializedDLOBNode => {
 	if (node instanceof OrderNode) {
@@ -248,7 +232,6 @@ const serializeDLOBNode = (
 			haveFilled: node.haveFilled,
 			haveTrigger: 'haveTrigger' in node ? node.haveTrigger : undefined,
 			isSignedMsg: 'isSignedMsg' in node ? node.isSignedMsg : undefined,
-			isUserProtectedMaker,
 		};
 	} else {
 		throw new Error(
@@ -301,29 +284,13 @@ export const deserializeDLOBNode = (node: SerializedDLOBNode): DLOBNode => {
 	const order = deserializeOrder(node.order);
 	switch (node.type) {
 		case 'TakingLimitOrderNode':
-			return new TakingLimitOrderNode(
-				order,
-				node.userAccount,
-				node.isUserProtectedMaker
-			);
+			return new TakingLimitOrderNode(order, node.userAccount);
 		case 'RestingLimitOrderNode':
-			return new RestingLimitOrderNode(
-				order,
-				node.userAccount,
-				node.isUserProtectedMaker
-			);
+			return new RestingLimitOrderNode(order, node.userAccount);
 		case 'FloatingLimitOrderNode':
-			return new FloatingLimitOrderNode(
-				order,
-				node.userAccount,
-				node.isUserProtectedMaker
-			);
+			return new FloatingLimitOrderNode(order, node.userAccount);
 		case 'MarketOrderNode':
-			return new MarketOrderNode(
-				order,
-				node.userAccount,
-				node.isUserProtectedMaker
-			);
+			return new MarketOrderNode(order, node.userAccount);
 		case 'SignedMsgOrderNode':
 			return new SignedMsgOrderNode(order, node.userAccount);
 		default:
