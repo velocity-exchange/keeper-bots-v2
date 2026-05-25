@@ -10,9 +10,7 @@ import {
 	MarketType,
 	DLOBNode,
 	DLOBSubscriber,
-	PhoenixSubscriber,
 	BN,
-	PhoenixV1FulfillmentConfigAccount,
 	TEN,
 	NodeToTrigger,
 	OrderSubscriber,
@@ -22,9 +20,7 @@ import {
 	BlockhashSubscriber,
 	JupiterClient,
 	ClockSubscriber,
-	OpenbookV2FulfillmentConfigAccount,
-	OpenbookV2Subscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 
 import {
@@ -73,7 +69,6 @@ import {
 	getNodeToTriggerSignature,
 	getTransactionAccountMetas,
 	handleSimResultError,
-	initializeSpotFulfillmentAccounts,
 	logMessageForNodeToFill,
 	simulateAndGetTxWithCUs,
 	SimulateAndGetTxWithCUsResponse,
@@ -239,18 +234,6 @@ export class SpotFillerBot implements Bot {
 	private orderSubscriber: OrderSubscriber;
 	private userStatsMap?: UserStatsMap;
 
-	private phoenixFulfillmentConfigMap: Map<
-		number,
-		PhoenixV1FulfillmentConfigAccount
-	>;
-	private phoenixSubscribers?: Map<number, PhoenixSubscriber>;
-
-	private openbookFulfillmentConfigMap: Map<
-		number,
-		OpenbookV2FulfillmentConfigAccount
-	>;
-	private openbookSubscribers?: Map<number, OpenbookV2Subscriber>;
-
 	private periodicTaskMutex = new Mutex();
 
 	private watchdogTimerMutex = new Mutex();
@@ -346,26 +329,10 @@ export class SpotFillerBot implements Bot {
 		this.pollingIntervalMs =
 			config.fillerPollingInterval ?? this.defaultIntervalMs;
 
-		this.phoenixFulfillmentConfigMap = new Map<
-			number,
-			PhoenixV1FulfillmentConfigAccount
-		>();
-
-		this.phoenixSubscribers = new Map<number, PhoenixSubscriber>();
-
-		this.openbookFulfillmentConfigMap = new Map<
-			number,
-			OpenbookV2FulfillmentConfigAccount
-		>();
-
-		this.openbookSubscribers = new Map<number, OpenbookV2Subscriber>();
-
 		this.initializeMetrics(config.metricsPort ?? this.globalConfig.metricsPort);
 
 		this.priorityFeeSubscriber = priorityFeeSubscriber;
 		this.priorityFeeSubscriber.updateAddresses([
-			new PublicKey('8BnEgHoWFysVcuFFX7QztDmzuH8r5ZFvyP3sYwn1XTh6'), // Openbook SOL/USDC
-			new PublicKey('4DoNfFBfF7UokCC2FQzriy7yHK6DY6NVdYpuekQ5pRgg'), // Phoenix SOL/USDC
 			new PublicKey('6gMq3mRCKf8aP3ttTyYhuijVZ2LGi14oDsBbkgubfLB3'), // Drift USDC market
 		]);
 
@@ -679,20 +646,6 @@ export class SpotFillerBot implements Bot {
 			`Initialized DLOBSubscriber in ${Date.now() - dlobSubscriberStart}`
 		);
 
-		({
-			phoenixFulfillmentConfigs: this.phoenixFulfillmentConfigMap,
-			openbookFulfillmentConfigs: this.openbookFulfillmentConfigMap,
-			phoenixSubscribers: this.phoenixSubscribers,
-			openbookSubscribers: this.openbookSubscribers,
-		} = await initializeSpotFulfillmentAccounts(this.driftClient, true));
-
-		if (!this.phoenixSubscribers) {
-			throw new Error('phoenixSubscribers not initialized');
-		}
-		if (!this.openbookSubscribers) {
-			throw new Error('openbookSubscribers not initialized');
-		}
-
 		this.lookupTableAccounts.push(
 			...(await this.driftClient.fetchAllLookupTableAccounts())
 		);
@@ -709,14 +662,6 @@ export class SpotFillerBot implements Bot {
 		await this.dlobSubscriber!.unsubscribe();
 		await this.userStatsMap!.unsubscribe();
 		await this.orderSubscriber.unsubscribe();
-
-		for (const phoenixSubscriber of this.phoenixSubscribers!.values()) {
-			await phoenixSubscriber.unsubscribe();
-		}
-
-		for (const openbookSubscriber of this.openbookSubscribers!.values()) {
-			await openbookSubscriber.unsubscribe();
-		}
 	}
 
 	public async startIntervalLoop(_intervalMs?: number) {
@@ -1030,27 +975,12 @@ export class SpotFillerBot implements Bot {
 			market.marketIndex
 		);
 
-		const phoenixSubscriber = this.phoenixSubscribers!.get(market.marketIndex);
-		const phoenixBestBid = phoenixSubscriber?.getBestBid();
-		const phoenixBestAsk = phoenixSubscriber?.getBestAsk();
-
-		const openbookSubscriber = this.openbookSubscribers!.get(
-			market.marketIndex
-		);
-		const openbookBestBid = openbookSubscriber?.getBestBid();
-		const openbookBestAsk = openbookSubscriber?.getBestAsk();
-
-		const [fallbackBidPrice, fallbackBidSource] = this.pickFallbackPrice(
-			openbookBestBid,
-			phoenixBestBid,
-			'bid'
-		);
-
-		const [fallbackAskPrice, fallbackAskSource] = this.pickFallbackPrice(
-			openbookBestAsk,
-			phoenixBestAsk,
-			'ask'
-		);
+		// Phoenix/OpenbookV2 spot fulfillment removed from velocity SDK; no
+		// external orderbook fallback price source available for spot markets.
+		const fallbackBidPrice: BN | undefined = undefined;
+		const fallbackAskPrice: BN | undefined = undefined;
+		const fallbackBidSource: FallbackLiquiditySource | undefined = undefined;
+		const fallbackAskSource: FallbackLiquiditySource | undefined = undefined;
 
 		const fillSlot = this.orderSubscriber.getSlot();
 
@@ -1078,34 +1008,6 @@ export class SpotFillerBot implements Bot {
 			nodesToFill: { nodesToFill, fallbackAskSource, fallbackBidSource },
 			nodesToTrigger,
 		};
-	}
-
-	private pickFallbackPrice(
-		openbookPrice: BN | undefined,
-		phoenixPrice: BN | undefined,
-		side: 'bid' | 'ask'
-	): [BN | undefined, FallbackLiquiditySource | undefined] {
-		if (openbookPrice && phoenixPrice) {
-			if (side === 'bid') {
-				return openbookPrice.gt(phoenixPrice)
-					? [openbookPrice, 'openbook']
-					: [phoenixPrice, 'phoenix'];
-			} else {
-				return openbookPrice.lt(phoenixPrice)
-					? [openbookPrice, 'openbook']
-					: [phoenixPrice, 'phoenix'];
-			}
-		}
-
-		if (openbookPrice) {
-			return [openbookPrice, 'openbook'];
-		}
-
-		if (phoenixPrice) {
-			return [phoenixPrice, 'phoenix'];
-		}
-
-		return [undefined, undefined];
 	}
 
 	private async getNodeFillInfo(nodeToFill: NodeToFill): Promise<{
@@ -1962,25 +1864,9 @@ export class SpotFillerBot implements Bot {
 			throw new Error('expected spot market type');
 		}
 
-		let fulfillmentConfig:
-			| PhoenixV1FulfillmentConfigAccount
-			| OpenbookV2FulfillmentConfigAccount
-			| undefined = undefined;
-		if (fallbackSource === 'phoenix') {
-			const cfg = this.phoenixFulfillmentConfigMap.get(
-				nodeToFill.node.order!.marketIndex
-			);
-			if (cfg && isVariant(cfg.status, 'enabled')) {
-				fulfillmentConfig = cfg;
-			}
-		} else if (fallbackSource === 'openbook') {
-			const cfg = this.openbookFulfillmentConfigMap.get(
-				nodeToFill.node.order!.marketIndex
-			);
-			if (cfg && isVariant(cfg.status, 'enabled')) {
-				fulfillmentConfig = cfg;
-			}
-		}
+		// Phoenix/OpenbookV2 fulfillment configs removed from velocity SDK; spot
+		// fills now always rely on the DLOB makers (no external fulfillment).
+		const fulfillmentConfig = undefined;
 
 		logMessageForNodeToFill(
 			nodeToFill,

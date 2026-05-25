@@ -10,7 +10,7 @@ import {
 	getUserWithOrderFilter,
 	Wallet,
 	BN,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Connection, PublicKey, RpcResponseAndContext } from '@solana/web3.js';
 import dotenv from 'dotenv';
 import { logger } from '../../logger';

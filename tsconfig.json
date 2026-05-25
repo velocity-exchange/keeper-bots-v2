@@ -1,9 +1,6 @@
 {
 	"compilerOptions": {
-		"types": [
-			"mocha",
-			"node",
-		],
+		"types": ["mocha", "node"],
 		"module": "commonjs",
 		"target": "es2021",
 		"esModuleInterop": true,
@@ -14,20 +11,15 @@
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"baseUrl": ".",
-		"rootDirs": [
-			"src"
-		],
+		"rootDirs": ["src"],
 		"outDir": "./lib",
 		"strict": true,
 		"paths": {
-			"@drift-labs/common/clients": ["./node_modules/@drift-labs/common/lib/clients"]
+			"@velocity-exchange/common/clients": [
+				"./node_modules/@velocity-exchange/common/lib/clients"
+			]
 		}
 	},
-	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"src/**/*.test.ts"
-	]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "src/**/*.test.ts"]
 }

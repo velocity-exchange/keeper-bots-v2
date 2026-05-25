@@ -8,7 +8,7 @@ import {
 	PriorityFeeSubscriber,
 	DataAndSlot,
 	BlockhashSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 
 import { AddressLookupTableAccount, PublicKey } from '@solana/web3.js';
 

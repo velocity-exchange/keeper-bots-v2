@@ -11,7 +11,7 @@ import {
 	QUOTE_PRECISION,
 	BASE_PRECISION,
 	PRICE_PRECISION,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { RuntimeSpec } from 'src/metrics';
 import * as axios from 'axios';
 import { sleepMs } from '../../utils';

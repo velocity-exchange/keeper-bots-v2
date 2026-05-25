@@ -30,16 +30,10 @@ import {
 	WhileValidTxSender,
 	PriorityFeeSubscriberMap,
 	isOneOfVariant,
-	PhoenixV1FulfillmentConfigAccount,
-	PhoenixSubscriber,
-	BulkAccountLoader,
-	PollingDriftClientAccountSubscriber,
 	isVariant,
 	SpotMarketConfig,
 	PerpMarketConfig,
 	DRIFT_ORACLE_RECEIVER_ID,
-	OpenbookV2FulfillmentConfigAccount,
-	OpenbookV2Subscriber,
 	OracleInfo,
 	PYTH_LAZER_STORAGE_ACCOUNT_KEY,
 	Order,
@@ -49,7 +43,7 @@ import {
 	MMOraclePriceData,
 	StateAccount,
 	PythLazerSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	NATIVE_MINT,
 	createAssociatedTokenAccountInstruction,
@@ -1162,173 +1156,6 @@ export function canFillSpotMarket(spotMarket: SpotMarketAccount): boolean {
 		return false;
 	}
 	return true;
-}
-
-export async function initializeSpotFulfillmentAccounts(
-	driftClient: DriftClient,
-	includeSubscribers = true,
-	marketsOfInterest?: number[]
-): Promise<{
-	phoenixFulfillmentConfigs: Map<number, PhoenixV1FulfillmentConfigAccount>;
-	openbookFulfillmentConfigs: Map<number, OpenbookV2FulfillmentConfigAccount>;
-	phoenixSubscribers?: Map<number, PhoenixSubscriber>;
-	openbookSubscribers?: Map<number, OpenbookV2Subscriber>;
-}> {
-	const phoenixFulfillmentConfigs = new Map<
-		number,
-		PhoenixV1FulfillmentConfigAccount
-	>();
-	const openbookFulfillmentConfigs = new Map<
-		number,
-		OpenbookV2FulfillmentConfigAccount
-	>();
-	const phoenixSubscribers = includeSubscribers
-		? new Map<number, PhoenixSubscriber>()
-		: undefined;
-	const openbookSubscribers = includeSubscribers
-		? new Map<number, OpenbookV2Subscriber>()
-		: undefined;
-
-	let accountSubscription:
-		| {
-				type: 'polling';
-				accountLoader: BulkAccountLoader;
-		  }
-		| {
-				type: 'websocket';
-		  };
-	if (
-		(driftClient.accountSubscriber as PollingDriftClientAccountSubscriber)
-			.accountLoader
-	) {
-		accountSubscription = {
-			type: 'polling',
-			accountLoader: (
-				driftClient.accountSubscriber as PollingDriftClientAccountSubscriber
-			).accountLoader,
-		};
-	} else {
-		accountSubscription = {
-			type: 'websocket',
-		};
-	}
-	const marketSetupPromises: Promise<void>[] = [];
-	const subscribePromises: Promise<void>[] = [];
-
-	marketSetupPromises.push(
-		new Promise((resolve) => {
-			(async () => {
-				const phoenixMarketConfigs =
-					await driftClient.getPhoenixV1FulfillmentConfigs();
-				for (const config of phoenixMarketConfigs) {
-					if (
-						marketsOfInterest &&
-						!marketsOfInterest.includes(config.marketIndex)
-					) {
-						continue;
-					}
-					const spotMarket = driftClient.getSpotMarketAccount(
-						config.marketIndex
-					);
-					if (!spotMarket) {
-						logger.warn(
-							`SpotMarket not found for PhoenixV1FulfillmentConfig for marketIndex: ${config.marketIndex}`
-						);
-						continue;
-					}
-					const symbol = decodeName(spotMarket.name);
-
-					phoenixFulfillmentConfigs.set(config.marketIndex, config);
-
-					if (includeSubscribers && isVariant(config.status, 'enabled')) {
-						// set up phoenix price subscriber
-						const phoenixSubscriber = new PhoenixSubscriber({
-							connection: driftClient.connection,
-							programId: config.phoenixProgramId,
-							marketAddress: config.phoenixMarket,
-							accountSubscription,
-						});
-						logger.info(`Initializing PhoenixSubscriber for ${symbol}...`);
-						subscribePromises.push(
-							phoenixSubscriber.subscribe().then(() => {
-								phoenixSubscribers!.set(config.marketIndex, phoenixSubscriber);
-							})
-						);
-					}
-				}
-				resolve();
-			})();
-		})
-	);
-
-	marketSetupPromises.push(
-		new Promise((resolve) => {
-			(async () => {
-				const openbookMarketConfigs =
-					await driftClient.getOpenbookV2FulfillmentConfigs();
-				for (const config of openbookMarketConfigs) {
-					if (
-						marketsOfInterest &&
-						!marketsOfInterest.includes(config.marketIndex)
-					) {
-						continue;
-					}
-
-					const spotMarket = driftClient.getSpotMarketAccount(
-						config.marketIndex
-					);
-
-					if (!spotMarket) {
-						logger.warn(
-							`SpotMarket not found for OpenbookV2FulfillmentConfig for marketIndex: ${config.marketIndex}`
-						);
-						continue;
-					}
-
-					const symbol = decodeName(spotMarket.name);
-
-					openbookFulfillmentConfigs.set(config.marketIndex, config);
-
-					if (includeSubscribers && isVariant(config.status, 'enabled')) {
-						// set up openbook subscriber
-						const openbookSubscriber = new OpenbookV2Subscriber({
-							connection: driftClient.connection,
-							programId: config.openbookV2ProgramId,
-							marketAddress: config.openbookV2Market,
-							accountSubscription,
-						});
-						logger.info(`Initializing OpenbookSubscriber for ${symbol}...`);
-						subscribePromises.push(
-							openbookSubscriber.subscribe().then(() => {
-								openbookSubscribers!.set(
-									config.marketIndex,
-									openbookSubscriber
-								);
-							})
-						);
-					}
-				}
-				resolve();
-			})();
-		})
-	);
-
-	const marketSetupStart = Date.now();
-	logger.info(`Waiting for spot market startup...`);
-	await Promise.all(marketSetupPromises);
-	logger.info(`Market setup finished in ${Date.now() - marketSetupStart}ms`);
-
-	const subscribeStart = Date.now();
-	logger.info(`Waiting for spot markets to subscribe...`);
-	await Promise.all(subscribePromises);
-	logger.info(`Subscribed to spot markets in ${Date.now() - subscribeStart}ms`);
-
-	return {
-		phoenixFulfillmentConfigs,
-		openbookFulfillmentConfigs,
-		phoenixSubscribers,
-		openbookSubscribers,
-	};
 }
 
 export const chunks = <T>(array: readonly T[], size: number): T[][] => {

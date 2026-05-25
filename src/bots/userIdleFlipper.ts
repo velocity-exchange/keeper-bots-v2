@@ -6,7 +6,7 @@ import {
 	UserMap,
 	TxSigAndSlot,
 	BlockhashSubscriber,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
 import { logger } from '../logger';

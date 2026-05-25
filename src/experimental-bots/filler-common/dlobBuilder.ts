@@ -11,10 +11,8 @@ import {
 	isVariant,
 	decodeUser,
 	Wallet,
-	PhoenixSubscriber,
 	BN,
 	ClockSubscriber,
-	OpenbookV2Subscriber,
 	SignedMsgOrderParamsMessage,
 	getUserAccountPublicKey,
 	SignedMsgOrderNode,
@@ -22,8 +20,6 @@ import {
 	ZERO,
 	OrderTriggerCondition,
 	PositionDirection,
-	UserStatus,
-	isUserProtectedMaker,
 	OraclePriceData,
 	OrderStatus,
 	getVariant,
@@ -34,7 +30,7 @@ import {
 	OrderParamsBitFlag,
 	PerpMarketAccount,
 	SpotMarketAccount,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 import dotenv from 'dotenv';
 import parseArgs from 'minimist';
@@ -45,7 +41,7 @@ import {
 	NodeToFillWithContext,
 } from './types';
 import { getDriftClientFromArgs, serializeNodeToFill } from './utils';
-import { initializeSpotFulfillmentAccounts, sleepMs } from '../../utils';
+import { sleepMs } from '../../utils';
 import { LRUCache } from 'lru-cache';
 import { sha256 } from '@noble/hashes/sha256';
 
@@ -63,9 +59,6 @@ class DLOBBuilder {
 	public driftClient: DriftClient;
 	public initialized: boolean = false;
 
-	// only used for spot filler
-	private phoenixSubscribers?: Map<number, PhoenixSubscriber>;
-	private openbookSubscribers?: Map<number, OpenbookV2Subscriber>;
 	private clockSubscriber: ClockSubscriber;
 
 	private signedMsgUserAuthorities = new Map<string, string>();
@@ -100,11 +93,6 @@ class DLOBBuilder {
 		this.marketIndexes = marketIndexes;
 		this.driftClient = driftClient;
 
-		if (marketTypeString.toLowerCase() === 'spot') {
-			this.phoenixSubscribers = new Map<number, PhoenixSubscriber>();
-			this.openbookSubscribers = new Map<number, OpenbookV2Subscriber>();
-		}
-
 		this.clockSubscriber = new ClockSubscriber(driftClient.connection, {
 			commitment: 'confirmed',
 			resubTimeoutMs: 5_000,
@@ -114,24 +102,8 @@ class DLOBBuilder {
 	public async subscribe() {
 		await this.slotSubscriber.subscribe();
 		await this.clockSubscriber.subscribe();
-
-		if (this.marketTypeString.toLowerCase() === 'spot') {
-			await this.initializeSpotMarkets();
-		}
-	}
-
-	private async initializeSpotMarkets() {
-		({
-			phoenixSubscribers: this.phoenixSubscribers,
-			openbookSubscribers: this.openbookSubscribers,
-		} = await initializeSpotFulfillmentAccounts(
-			this.driftClient,
-			true,
-			this.marketIndexes
-		));
-		if (!this.phoenixSubscribers) {
-			throw new Error('phoenixSubscribers not initialized');
-		}
+		// Phoenix/OpenbookV2 spot fulfillment removed from velocity SDK; no
+		// external orderbook subscribers are initialized for spot markets.
 	}
 
 	public getUserBuffer(pubkey: string) {
@@ -172,18 +144,13 @@ class DLOBBuilder {
 					order,
 					pubkey,
 					this.slotSubscriber.getSlot(),
-					isUserProtectedMaker(userAccount),
 					order.baseAssetAmount
 				);
 				counter++;
 			});
 		});
 		for (const signedMsgNode of this.signedMsgOrders.values()) {
-			dlob.insertSignedMsgOrder(
-				signedMsgNode.order,
-				signedMsgNode.userAccount,
-				false
-			);
+			dlob.insertSignedMsgOrder(signedMsgNode.order, signedMsgNode.userAccount);
 			counter++;
 		}
 		logger.debug(`${logPrefix} Built DLOB with ${counter} orders`);
@@ -328,8 +295,8 @@ class DLOBBuilder {
 			let oraclePriceData: OraclePriceData;
 			let fallbackAsk: BN | undefined = undefined;
 			let fallbackBid: BN | undefined = undefined;
-			let fallbackAskSource: FallbackLiquiditySource | undefined = undefined;
-			let fallbackBidSource: FallbackLiquiditySource | undefined = undefined;
+			const fallbackAskSource: FallbackLiquiditySource | undefined = undefined;
+			const fallbackBidSource: FallbackLiquiditySource | undefined = undefined;
 			if (this.marketTypeString.toLowerCase() === 'perp') {
 				market = this.driftClient.getPerpMarketAccount(marketIndex);
 				if (!market) {
@@ -356,46 +323,8 @@ class DLOBBuilder {
 				}
 				oraclePriceData =
 					this.driftClient.getOracleDataForSpotMarket(marketIndex);
-
-				const openbookSubscriber = this.openbookSubscribers!.get(marketIndex);
-				const openbookBid = openbookSubscriber?.getBestBid();
-				const openbookAsk = openbookSubscriber?.getBestAsk();
-
-				const phoenixSubscriber = this.phoenixSubscribers!.get(marketIndex);
-				const phoenixBid = phoenixSubscriber?.getBestBid();
-				const phoenixAsk = phoenixSubscriber?.getBestAsk();
-
-				if (openbookBid && phoenixBid) {
-					if (openbookBid!.gte(phoenixBid!)) {
-						fallbackBid = openbookBid;
-						fallbackBidSource = 'openbook';
-					} else {
-						fallbackBid = phoenixBid;
-						fallbackBidSource = 'phoenix';
-					}
-				} else if (openbookBid) {
-					fallbackBid = openbookBid;
-					fallbackBidSource = 'openbook';
-				} else if (phoenixBid) {
-					fallbackBid = phoenixBid;
-					fallbackBidSource = 'phoenix';
-				}
-
-				if (openbookAsk && phoenixAsk) {
-					if (openbookAsk!.lte(phoenixAsk!)) {
-						fallbackAsk = openbookAsk;
-						fallbackAskSource = 'openbook';
-					} else {
-						fallbackAsk = phoenixAsk;
-						fallbackAskSource = 'phoenix';
-					}
-				} else if (openbookAsk) {
-					fallbackAsk = openbookAsk;
-					fallbackAskSource = 'openbook';
-				} else if (phoenixAsk) {
-					fallbackAsk = phoenixAsk;
-					fallbackAskSource = 'phoenix';
-				}
+				// Phoenix/OpenbookV2 spot fulfillment removed from velocity SDK;
+				// no external orderbook fallback prices available for spot markets.
 			}
 
 			const stateAccount = this.driftClient.getStateAccount();
@@ -456,8 +385,6 @@ class DLOBBuilder {
 				return serializeNodeToFill(
 					node,
 					makerBuffers,
-					this.userAccountData.get(node.node.userAccount!)?.status ===
-						UserStatus.PROTECTED_MAKER,
 					buffer,
 					this.signedMsgUserAuthorities.get(node.node.userAccount!)
 				);

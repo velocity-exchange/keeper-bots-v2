@@ -9,7 +9,7 @@ import {
 	DLOBNode,
 	NodeToTrigger,
 	PublicKey,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 
 export type SerializedUserAccount = {
 	authority: string;
@@ -23,7 +23,6 @@ export type SerializedUserAccount = {
 	nextLiquidationId: number;
 	nextOrderId: number;
 	maxMarginRatio: number;
-	lastAddPerpLpSharesTs: string;
 	settledPerpPnl: string;
 	totalDeposits: string;
 	totalWithdraws: string;
@@ -90,10 +89,7 @@ export type SerializedPerpPosition = {
 	openBids: string;
 	openAsks: string;
 	settledPnl: string;
-	lpShares: string;
 	remainderBaseAssetAmount: number;
-	lastQuoteAssetAmountPerLp: string;
-	perLpBase: number;
 	isolatedPositionScaledBalance: string;
 	positionFlag: number;
 };
@@ -133,7 +129,6 @@ export type SerializedDLOBNode = {
 	fallbackAskSource?: FallbackLiquiditySource;
 	fallbackBidSource?: FallbackLiquiditySource;
 	isSignedMsg?: boolean;
-	isUserProtectedMaker: boolean;
 };
 
 export type FallbackLiquiditySource = 'phoenix' | 'openbook';

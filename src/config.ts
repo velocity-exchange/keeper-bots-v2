@@ -11,7 +11,7 @@ import {
 	DriftEnv,
 	MarketType,
 	PerpMarkets,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { JitMakerConfig } from './bots/jitMaker';
 import { PriceFeedProperty } from '@pythnetwork/pyth-lazer-sdk';
 
@@ -118,17 +118,6 @@ export type PythLazerCrankerBotConfig = BaseBotConfig & {
 	feedProperties?: PriceFeedProperty[];
 };
 
-export type SwitchboardCrankerBotConfig = BaseBotConfig & {
-	intervalMs: number;
-	queuePubkey: string;
-	pullFeedConfigs: {
-		[key: string]: {
-			pubkey: string;
-		};
-	};
-	writableAccounts?: string[];
-};
-
 export type LpPoolTargetBaseCrankerConfig = BaseBotConfig & {
 	intervalMs: number;
 	lpPoolId: number;
@@ -149,7 +138,6 @@ export type BotConfigMap = {
 	userIdleFlipper?: BaseBotConfig;
 	markTwapCrank?: MakerBidAskTwapCrankConfig;
 	pythLazerCranker?: PythLazerCrankerBotConfig;
-	switchboardCranker?: SwitchboardCrankerBotConfig;
 	swiftTaker?: BaseBotConfig;
 	swiftMaker?: BaseBotConfig;
 	swiftPlacer?: BaseBotConfig;

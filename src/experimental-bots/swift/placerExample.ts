@@ -27,7 +27,7 @@ import {
 	SlotSubscriber,
 	UserMap,
 	ZERO,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { RuntimeSpec } from 'src/metrics';
 import WebSocket from 'ws';
 import nacl from 'tweetnacl';

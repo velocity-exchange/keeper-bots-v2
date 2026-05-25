@@ -11,7 +11,7 @@ import {
 	BASE_PRECISION,
 	Order,
 	PerpPosition,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 
 import { logger } from '../logger';

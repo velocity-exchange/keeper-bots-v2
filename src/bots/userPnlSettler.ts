@@ -30,7 +30,7 @@ import {
 	isBuilderOrderCompleted,
 	getUserAccountPublicKeySync,
 	SettlePnlMode,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
 import { getErrorCode } from '../error';
@@ -51,7 +51,7 @@ import {
 	TransactionExpiredBlockheightExceededError,
 	TransactionInstruction,
 } from '@solana/web3.js';
-import { ENUM_UTILS } from '@drift-labs/common';
+import { ENUM_UTILS } from '@velocity-exchange/common';
 
 // =============================================================================
 // CONSTANTS
@@ -725,20 +725,6 @@ export class UserPnlSettlerBot implements Bot {
 							}),
 						];
 
-						if (
-							isOneOfVariant(perpMarket.amm.oracleSource, [
-								'switchboardOnDemand',
-							])
-						) {
-							const crankIx =
-								await this.driftClient.getPostSwitchboardOnDemandUpdateAtomicIx(
-									perpMarket.amm.oracle
-								);
-							if (crankIx) {
-								ixs.push(crankIx);
-							}
-						}
-
 						ixs.push(
 							await this.driftClient.getUpdateFundingRateIx(
 								perpMarket.marketIndex,
@@ -1030,8 +1016,7 @@ export class UserPnlSettlerBot implements Bot {
 		// Check if position has activity
 		if (
 			settleePosition.quoteAssetAmount.gte(ZERO) &&
-			settleePosition.baseAssetAmount.eq(ZERO) &&
-			settleePosition.lpShares.eq(ZERO)
+			settleePosition.baseAssetAmount.eq(ZERO)
 		) {
 			return { shouldSettle: false };
 		}
@@ -1090,7 +1075,7 @@ export class UserPnlSettlerBot implements Bot {
 			// For negative PnL settlement, apply existing logic
 			const hasZeroPnl = userUnsettledPnl.eq(ZERO);
 
-			// Skip users with zero PnL and no LP shares - these don't need settlement
+			// Skip users with zero PnL - these don't need settlement
 			if (hasZeroPnl) {
 				return { shouldSettle: false };
 			}

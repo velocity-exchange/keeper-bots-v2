@@ -32,7 +32,7 @@ import {
 	findDirectionToClose,
 	calculateMarketAvailablePNL,
 	RECOMMENDED_JUPITER_API,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	ComputeBudgetProgram,
 	AddressLookupTableAccount,
@@ -45,7 +45,7 @@ import {
 } from '@solana/spl-token';
 import { logger } from '../logger';
 import { LiquidatorConfig } from '../config';
-import { PriorityFeeSubscriber } from '@drift-labs/sdk';
+import { PriorityFeeSubscriber } from '@velocity-exchange/sdk';
 import {
 	checkIfAccountExists,
 	simulateAndGetTxWithCUs,

@@ -22,7 +22,7 @@ import {
 	UserMap,
 	DriftClientConfig,
 	configs,
-} from '@drift-labs/sdk';
+} from '@velocity-exchange/sdk';
 import {
 	Commitment,
 	ConfirmOptions,
@@ -33,7 +33,7 @@ import {
 import { BundleSender } from '../bundleSender';
 import { FillerMultithreaded } from './filler/fillerMultithreaded';
 import http from 'http';
-import { promiseTimeout } from '@drift-labs/sdk';
+import { promiseTimeout } from '@velocity-exchange/sdk';
 import { SpotFillerMultithreaded } from './spotFiller/spotFillerMultithreaded';
 import { setGlobalDispatcher, Agent } from 'undici';
 import { SwiftMaker } from './swift/makerExample';

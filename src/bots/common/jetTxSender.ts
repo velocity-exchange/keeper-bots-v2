@@ -1,6 +1,6 @@
 import { ConfirmOptions, Connection } from '@solana/web3.js';
 import { logger } from '../../logger';
-import { WhileValidTxSender } from '@drift-labs/sdk';
+import { WhileValidTxSender } from '@velocity-exchange/sdk';
 
 export class JetProxyTxSender extends WhileValidTxSender {
 	private submitConnections: Connection[];

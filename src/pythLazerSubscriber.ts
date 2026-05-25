@@ -1,6 +1,6 @@
 import { Channel, PythLazerClient } from '@pythnetwork/pyth-lazer-sdk';
-import { DriftEnv, PerpMarkets } from '@drift-labs/sdk';
-import { RedisClient } from '@drift-labs/common/clients';
+import { DriftEnv, PerpMarkets } from '@velocity-exchange/sdk';
+import { RedisClient } from '@velocity-exchange/common/clients';
 import * as axios from 'axios';
 
 export type PythLazerPriceFeedArray = {
@@ -9,7 +9,7 @@ export type PythLazerPriceFeedArray = {
 };
 /**
  * @deprecated
- * Deprecated - use PythLazerSubscriber from @drift-labs/sdk instead
+ * Deprecated - use PythLazerSubscriber from @velocity-exchange/sdk instead
  */
 export class PythLazerSubscriber {
 	private pythLazerClient?: PythLazerClient;
