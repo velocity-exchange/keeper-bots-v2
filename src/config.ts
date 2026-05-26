@@ -243,6 +243,7 @@ const defaultConfig: Partial<Config> = {
 		hermesEndpoint: process.env.HERMES_ENDPOINT,
 		wsEndpoint: process.env.WS_ENDPOINT,
 		heliusEndpoint: process.env.HELIUS_ENDPOINT,
+		lazerToken: process.env.PYTH_LAZER_TOKEN,
 		additionalSendTxEndpoints: [],
 		txConfirmationEndpoint: process.env.TX_CONFIRMATION_ENDPOINT,
 		priorityFeeMethod: process.env.PRIORITY_FEE_METHOD ?? 'solana',
