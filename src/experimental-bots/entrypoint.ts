@@ -245,6 +245,23 @@ const runBot = async () => {
 	await driftClient.subscribe();
 	await driftClient.fetchAllLookupTableAccounts();
 
+	// Mirrors checkUserExists in src/index.ts: every bot wired into this
+	// entrypoint constructs a UserMap or accesses driftClient.getUser() and
+	// will throw if the keeper has no User PDA on chain. Honor the
+	// globalConfig.initUser flag the same way the legacy entrypoint does.
+	if (!(await driftClient.getUser().exists())) {
+		logger.error(
+			`User for ${wallet.publicKey} does not exist (subAccountId: ${driftClient.activeSubAccountId})`
+		);
+		if (config.global.initUser) {
+			logger.info(`Creating User for ${wallet.publicKey}`);
+			const [txSig] = await driftClient.initializeUserAccount();
+			logger.info(`Initialized user account in transaction: ${txSig}`);
+		} else {
+			throw new Error('Set initUser: true in config to initialize a User');
+		}
+	}
+
 	const slotSubscriber = new SlotSubscriber(connection, {
 		resubTimeoutMs: 10_000,
 	});
