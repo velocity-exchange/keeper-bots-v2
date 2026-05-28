@@ -315,8 +315,21 @@ export class PythLazerCrankerBot implements Bot {
 				});
 				if (simResult.simError) {
 					logger.error(
-						`Error simulating pyth lazer oracles for ${feedIds}: ${simResult.simTxLogs}`
+						`Error simulating pyth lazer oracles for [${feedIds.join(
+							','
+						)}] at slot ${simResult.simSlot}: ${JSON.stringify(
+							simResult.simError
+						)}`
 					);
+					if (simResult.simTxLogs?.length) {
+						for (const line of simResult.simTxLogs) {
+							logger.error(`  sim log: ${line}`);
+						}
+					} else {
+						logger.error(
+							`  no program logs returned — tx likely failed account validation or ed25519 precompile (cuEstimate=${simResult.cuEstimate})`
+						);
+					}
 					continue;
 				}
 				const startTime = Date.now();
