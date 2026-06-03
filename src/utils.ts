@@ -51,7 +51,6 @@ import {
 	getAssociatedTokenAddress,
 	getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
-import { PythLazerSubscriber as PythLazerSubscriberDeprecated } from './pythLazerSubscriber';
 import {
 	AddressLookupTableAccount,
 	ComputeBudgetProgram,
@@ -1123,7 +1122,7 @@ export const getStaleOracleMarketIndexes = (
 export const getAllPythOracleUpdateIxs = async (
 	marketIndex: number,
 	driftClient: DriftClient,
-	pythLazerSubscriber?: PythLazerSubscriber | PythLazerSubscriberDeprecated,
+	pythLazerSubscriber?: PythLazerSubscriber,
 	precedingIxs: TransactionInstruction[] = []
 ): Promise<TransactionInstruction[]> => {
 	const updateMessage =

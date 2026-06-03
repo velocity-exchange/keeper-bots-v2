@@ -28,6 +28,7 @@ import {
 	TxSigAndSlot,
 	UserAccount,
 	UserMap,
+	PythLazerSubscriber,
 } from '@velocity-exchange/sdk';
 import { FillerMultiThreadedConfig, GlobalConfig } from '../../config';
 import { JITO_METRIC_TYPES, BundleSender } from '../../bundleSender';
@@ -104,7 +105,6 @@ import {
 } from '../../bots/common/txLogParse';
 import { bs58 } from '@project-serum/anchor/dist/cjs/utils/bytes';
 import { ChildProcess } from 'child_process';
-import { PythLazerSubscriber } from '../../pythLazerSubscriber';
 import path from 'path';
 
 const logPrefix = '[Filler]';

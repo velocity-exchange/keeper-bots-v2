@@ -24,6 +24,8 @@ import {
 	PRICE_PRECISION,
 	getTriggerPrice,
 	useMedianTriggerPrice,
+	PythLazerPriceFeedArray,
+	PythLazerSubscriber,
 } from '@velocity-exchange/sdk';
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 
@@ -51,10 +53,6 @@ import {
 	ComputeBudgetProgram,
 	TransactionInstruction,
 } from '@solana/web3.js';
-import {
-	PythLazerPriceFeedArray,
-	PythLazerSubscriber,
-} from '../pythLazerSubscriber';
 
 const TRIGGER_ORDER_COOLDOWN_MS = 10000; // time to wait between triggering an order
 

@@ -14,6 +14,7 @@ import {
 	getVariant,
 	PerpMarkets,
 	BlockhashSubscriber,
+	PythLazerSubscriber,
 } from '@velocity-exchange/sdk';
 import { Mutex } from 'async-mutex';
 
@@ -39,7 +40,6 @@ import {
 	simulateAndGetTxWithCUs,
 	SimulateAndGetTxWithCUsResponse,
 } from '../utils';
-import { PythLazerSubscriber } from '../pythLazerSubscriber';
 import { BundleSender } from '../bundleSender';
 
 const CU_EST_MULTIPLIER = 1.4;
