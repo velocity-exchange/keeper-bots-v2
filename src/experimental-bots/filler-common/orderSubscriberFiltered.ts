@@ -15,7 +15,7 @@ import { Connection, PublicKey, RpcResponseAndContext } from '@solana/web3.js';
 import dotenv from 'dotenv';
 import { logger } from '../../logger';
 import parseArgs from 'minimist';
-import { getDriftClientFromArgs } from './utils';
+import { getDriftClientFromArgs, getValidMarketIndexes } from './utils';
 
 const logPrefix = '[OrderSubscriberFiltered]';
 
@@ -242,11 +242,12 @@ const main = async () => {
 	const args = parseArgs(process.argv.slice(2));
 	const driftEnv = args['drift-env'] ?? 'devnet';
 	const marketIndexesStr = String(args['market-indexes']);
-	const marketIndexes = marketIndexesStr.split(',').map(Number);
+	let marketIndexes = marketIndexesStr.split(',').map(Number);
 	const marketTypeStr = args['market-type'] as string;
 	if (marketTypeStr !== 'perp' && marketTypeStr !== 'spot') {
 		throw new Error("market-type must be either 'perp' or 'spot'");
 	}
+	marketIndexes = getValidMarketIndexes(marketIndexes, marketTypeStr, driftEnv);
 
 	let marketType: MarketType;
 	switch (marketTypeStr) {

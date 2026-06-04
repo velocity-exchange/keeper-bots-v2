@@ -40,7 +40,11 @@ import {
 	SerializedNodeToFill,
 	NodeToFillWithContext,
 } from './types';
-import { getDriftClientFromArgs, serializeNodeToFill } from './utils';
+import {
+	getDriftClientFromArgs,
+	getValidMarketIndexes,
+	serializeNodeToFill,
+} from './utils';
 import { sleepMs } from '../../utils';
 import { LRUCache } from 'lru-cache';
 import { sha256 } from '@noble/hashes/sha256';
@@ -446,6 +450,7 @@ const main = async () => {
 	if (marketTypeStr !== 'perp' && marketTypeStr !== 'spot') {
 		throw new Error("market-type must be either 'perp' or 'spot'");
 	}
+	marketIndexes = getValidMarketIndexes(marketIndexes, marketTypeStr, driftEnv);
 
 	let marketType: MarketType;
 	switch (marketTypeStr) {
