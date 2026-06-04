@@ -322,6 +322,33 @@ export const getOracleInfoForMarket = (
 	}
 };
 
+/**
+ * Drops market indexes that have no entry in the SDK config for this env, logging
+ * a warning instead of letting a later `undefined` oracle/market deref crash the
+ * worker. Keeps the bot running on the markets it does know about.
+ */
+export const getValidMarketIndexes = (
+	marketIndexes: number[],
+	marketTypeStr: 'spot' | 'perp',
+	env: DriftEnv
+): number[] => {
+	const sdkConfig = initialize({ env });
+	const configured: Array<PerpMarketConfig | SpotMarketConfig> =
+		marketTypeStr === 'perp' ? sdkConfig.PERP_MARKETS : sdkConfig.SPOT_MARKETS;
+	const known = new Set(configured.map((m) => m.marketIndex));
+	const missing = marketIndexes.filter((i) => !known.has(i));
+	if (missing.length > 0) {
+		logger.warn(
+			`No ${marketTypeStr} market config for index(es) [${missing.join(
+				', '
+			)}] on env '${env}'; skipping them. Known indexes: [${Array.from(
+				known
+			).join(', ')}]`
+		);
+	}
+	return marketIndexes.filter((i) => known.has(i));
+};
+
 export const getDriftClientFromArgs = ({
 	connection,
 	wallet,
