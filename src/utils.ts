@@ -336,7 +336,7 @@ export function calculateBaseAmountToMarketMakePerp(
 	targetLeverage = 1
 ) {
 	const basePriceNormed = convertToNumber(
-		perpMarketAccount.amm.historicalOracleData.lastOraclePriceTwap
+		perpMarketAccount.marketStats.historicalOracleData.lastOraclePriceTwap
 	);
 
 	const accountValueUsd = calculateAccountValueUsd(user);
@@ -382,8 +382,9 @@ export function isMarketVolatile(
 	volatileThreshold = 0.005 // 50 bps
 ) {
 	const twapPrice =
-		perpMarketAccount.amm.historicalOracleData.lastOraclePriceTwap5Min;
-	const lastPrice = perpMarketAccount.amm.historicalOracleData.lastOraclePrice;
+		perpMarketAccount.marketStats.historicalOracleData.lastOraclePriceTwap5Min;
+	const lastPrice =
+		perpMarketAccount.marketStats.historicalOracleData.lastOraclePrice;
 	const currentPrice = oraclePriceData.price;
 	const minDenom = BN.min(BN.min(currentPrice, lastPrice), twapPrice);
 	const cVsL =
@@ -396,7 +397,7 @@ export function isMarketVolatile(
 		) / PERCENTAGE_PRECISION.toNumber();
 
 	const recentStd =
-		perpMarketAccount.amm.oracleStd
+		perpMarketAccount.marketStats.oracleStd
 			.mul(PRICE_PRECISION)
 			.div(minDenom)
 			.toNumber() / PERCENTAGE_PRECISION.toNumber();
@@ -754,8 +755,10 @@ export function logMessageForNodeToFill(
 				),
 				takerPrice: convertToNumber(takerOrder.price, PRICE_PRECISION),
 				takerOrderPrice: getVariant(takerOrder.orderType),
-				takerOrderPriceOffset:
-					takerOrder.oraclePriceOffset / PRICE_PRECISION.toNumber(),
+				takerOrderPriceOffset: convertToNumber(
+					takerOrder.oraclePriceOffset,
+					PRICE_PRECISION
+				),
 				makers: makerInfos.length,
 				fillType,
 				fillId,
@@ -792,8 +795,10 @@ export function logMessageForNodeToFill(
 							basePrecision
 						),
 						makerOrderPrice: convertToNumber(makerOrder.price, PRICE_PRECISION),
-						makerOrderPriceOffset:
-							makerOrder.oraclePriceOffset / PRICE_PRECISION.toNumber(),
+						makerOrderPriceOffset: convertToNumber(
+							makerOrder.oraclePriceOffset,
+							PRICE_PRECISION
+						),
 						fillType,
 						fillId,
 						revertOnFailure,
@@ -1444,7 +1449,7 @@ export function isFillableByVAMMDetails(
 			mmOraclePriceData,
 			slot
 		);
-	const minOrderSize = market.amm.minOrderSize;
+	const minOrderSize = market.marketStats.minOrderSize;
 	const orderExpired = isOrderExpired(order, ts);
 	return {
 		fillable:

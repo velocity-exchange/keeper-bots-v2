@@ -1420,7 +1420,7 @@ export class FillerBot extends TxThreaded implements Bot {
 		}
 		if (
 			isVariant(
-				this.driftClient.getPerpMarketAccount(marketIndex)?.amm.oracleSource,
+				this.driftClient.getPerpMarketAccount(marketIndex)?.oracleSource,
 				'prelaunch'
 			)
 		) {
@@ -1458,7 +1458,6 @@ export class FillerBot extends TxThreaded implements Bot {
 				takerUser,
 				takerUserPubKey,
 				takerUserSlot,
-				referrerInfo,
 				marketType,
 			} = await this.getNodeFillInfo(nodeToFill);
 
@@ -1512,8 +1511,7 @@ export class FillerBot extends TxThreaded implements Bot {
 						),
 						takerUser,
 						nodeToFill.node.order!,
-						makers.map((m) => m.data),
-						referrerInfo
+						makers.map((m) => m.data)
 					)
 				);
 
@@ -1743,8 +1741,7 @@ export class FillerBot extends TxThreaded implements Bot {
 				),
 				takerUser,
 				nodeToFill.node.order!,
-				makerInfos.map((m) => m.data),
-				referrerInfo
+				makerInfos.map((m) => m.data)
 			);
 
 			if (!ix) {
@@ -2021,8 +2018,7 @@ export class FillerBot extends TxThreaded implements Bot {
 					new PublicKey(nodeToTrigger.node.userAccount),
 					user.data,
 					nodeToTrigger.node.order,
-					makerInfos,
-					referrerInfo
+					makerInfos
 				);
 				ixs.push(fillIx);
 

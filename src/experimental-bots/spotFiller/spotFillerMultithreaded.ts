@@ -710,7 +710,6 @@ export class SpotFillerMultithreaded {
 						nodeToFill.node.order!,
 						undefined,
 						makers.map((m) => m.data),
-						undefined,
 						user.userAccountPublicKey
 					)
 				);
@@ -927,7 +926,6 @@ export class SpotFillerMultithreaded {
 				takerUser,
 				nodeToFill.node.order,
 				fulfillmentConfig,
-				undefined,
 				undefined,
 				user.userAccountPublicKey
 			)

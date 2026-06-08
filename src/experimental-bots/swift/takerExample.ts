@@ -82,7 +82,7 @@ export class SwiftTaker {
 				direction,
 				baseAssetAmount: floorBNToNearest(
 					tradeSize,
-					perpMarketAccount.amm.orderStepSize
+					perpMarketAccount.orderStepSize
 				),
 				auctionStartPrice: isVariant(direction, 'long') ? lowPrice : highPrice,
 				auctionEndPrice: isVariant(direction, 'long') ? highPrice : lowPrice,

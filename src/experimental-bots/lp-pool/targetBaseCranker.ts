@@ -87,7 +87,7 @@ export class LpPoolTargetBaseCranker {
 		this.interval = setInterval(async () => {
 			const perpMarkets = this.driftClient.getPerpMarketAccounts();
 			const marketIndexes = perpMarkets
-				.filter((market) => market.lpStatus == 1)
+				.filter((market) => market.hedgeConfig.status == 1)
 				.map((market) => market.marketIndex);
 			if (marketIndexes.length === 0) {
 				console.warn(

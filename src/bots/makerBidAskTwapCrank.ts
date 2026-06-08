@@ -174,7 +174,7 @@ function buildCrankIntervalToMarketIds(
 		} else {
 			if (isOneOfVariant(perpMarket.contractTier, ['a', 'b'])) {
 				crankPeriodMs = 10_000;
-			} else if (isVariant(perpMarket.amm.oracleSource, 'prelaunch')) {
+			} else if (isVariant(perpMarket.oracleSource, 'prelaunch')) {
 				crankPeriodMs = 30_000;
 			}
 		}
@@ -182,7 +182,7 @@ function buildCrankIntervalToMarketIds(
 			`Perp market ${perpMarket.marketIndex} contractTier: ${getVariant(
 				perpMarket.contractTier
 			)} isPrelaunch: ${isVariant(
-				perpMarket.amm.oracleSource,
+				perpMarket.oracleSource,
 				'prelaunch'
 			)}, crankPeriodMs: ${crankPeriodMs}`
 		);
@@ -702,7 +702,7 @@ export class MakerBidAskTwapCrank implements Bot {
 				if (
 					this.pythLazerSubscriber &&
 					isOneOfVariant(
-						this.driftClient.getPerpMarketAccount(mi)!.amm.oracleSource,
+						this.driftClient.getPerpMarketAccount(mi)!.oracleSource,
 						['pythLazer', 'pythLazer1K', 'pythLazer1M', 'pythLazerStableCoin']
 					)
 				) {
@@ -724,7 +724,7 @@ export class MakerBidAskTwapCrank implements Bot {
 
 				if (
 					isVariant(
-						this.driftClient.getPerpMarketAccount(mi)!.amm.oracleSource,
+						this.driftClient.getPerpMarketAccount(mi)!.oracleSource,
 						'prelaunch'
 					)
 				) {

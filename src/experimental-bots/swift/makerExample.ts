@@ -268,12 +268,11 @@ export class SwiftMaker {
 											: PositionDirection.LONG,
 										baseAssetAmount:
 											signedMsgOrderParams.baseAssetAmount.divn(2),
-										oraclePriceOffset: isOracleOffset ? price.toNumber() : null,
+										oraclePriceOffset: isOracleOffset ? price : null,
 										price: isOracleOffset ? ZERO : price,
 										postOnly: PostOnlyParams.MUST_POST_ONLY,
 										bitFlags: OrderParamsBitFlag.ImmediateOrCancel,
 									}),
-									undefined,
 									undefined,
 									computeBudgetIxs
 								);

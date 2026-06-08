@@ -566,8 +566,7 @@ export class LiquidatorDerisk {
 
 		baseAssetAmount = standardizeBaseAssetAmount(
 			baseAssetAmount,
-			this.driftClient.getPerpMarketAccount(position.marketIndex)!.amm
-				.orderStepSize
+			this.driftClient.getPerpMarketAccount(position.marketIndex)!.orderStepSize
 		);
 
 		if (baseAssetAmount.eq(ZERO)) {
@@ -634,7 +633,9 @@ export class LiquidatorDerisk {
 				position.marketIndex
 			)!;
 			if (!position.baseAssetAmount.isZero()) {
-				if (position.baseAssetAmount.abs().lt(perpMarket.amm.minOrderSize)) {
+				if (
+					position.baseAssetAmount.abs().lt(perpMarket.marketStats.minOrderSize)
+				) {
 					continue;
 				}
 

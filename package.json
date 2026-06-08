@@ -21,7 +21,7 @@
 		"@types/mocha": "10.0.6",
 		"@types/node": "24.0.0",
 		"@velocity-exchange/common": "0.0.1",
-		"@velocity-exchange/sdk": "0.0.3",
+		"@velocity-exchange/sdk": "file:../protocol-v2-shadow/sdk",
 		"async": "3.2.5",
 		"async-mutex": "0.3.2",
 		"aws-sdk": "2.1511.0",
@@ -55,8 +55,8 @@
 		"simple-swizzle": "0.2.2",
 		"is-arrayish": "0.3.2",
 		"log-symbols": "4.1.0",
-		"@drift-labs/sdk": "npm:@velocity-exchange/sdk@0.0.3",
-		"@velocity-exchange/sdk": "0.0.3"
+		"@drift-labs/sdk": "file:../protocol-v2-shadow/sdk",
+		"@velocity-exchange/sdk": "file:../protocol-v2-shadow/sdk"
 	},
 	"devDependencies": {
 		"@types/chai": "4.3.11",

@@ -59,7 +59,7 @@ export type SerializedOrder = {
 	existingPositionDirection: PositionDirection;
 	postOnly: boolean;
 	immediateOrCancel: boolean;
-	oraclePriceOffset: number;
+	oraclePriceOffset: string;
 	auctionDuration: number;
 	auctionStartPrice: string;
 	auctionEndPrice: string;

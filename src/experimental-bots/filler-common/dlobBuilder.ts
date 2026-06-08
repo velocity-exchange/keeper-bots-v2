@@ -263,7 +263,7 @@ class DLOBBuilder {
 				0,
 			direction: signedMsgOrderParams.direction,
 			postOnly: false,
-			oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? 0,
+			oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? ZERO,
 			maxTs: signedMsgOrderParams.maxTs ?? ZERO,
 			reduceOnly: signedMsgOrderParams.reduceOnly ?? false,
 			triggerCondition:
