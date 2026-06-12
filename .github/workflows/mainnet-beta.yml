@@ -19,7 +19,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_PROD }}
+          role-to-assume: ${{ vars.VELOCITY_PROD_ECR_PUBLISH_ROLE }}
           role-session-name: gha-${{ github.run_id }}
           aws-region: ${{ secrets.EKS_PROD_REGION }}
 
@@ -40,39 +40,3 @@ jobs:
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}-${{ env.BRANCH_NAME }}-amd64
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest-${{ env.BRANCH_NAME }}-amd64
-
-  deploy:
-    runs-on: ubicloud
-    needs: [build]
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
-        with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_PROD }}
-          role-session-name: gha-${{ github.run_id }}
-          aws-region: ${{ secrets.EKS_PROD_REGION }}
-
-      - name: Install kubectl
-        uses: azure/setup-kubectl@901a10e89ea615cf61f57ac05cecdf23e7de06d8 # v3.2
-        with:
-          version: 'v1.30.0'
-
-      - name: Configure AWS EKS Credentials
-        run: aws eks update-kubeconfig --name ${{ secrets.EKS_PROD_CLUSTER_NAME }} --region ${{ secrets.EKS_PROD_REGION }} --role-arn ${{ secrets.EKS_PROD_DEPLOY_ROLE }}
-
-      - name: Restart deployment
-        env:
-          BRANCH_NAME: ${{ github.ref_name }}
-        run: |
-          kubectl get deployments -n $BRANCH_NAME -o name | grep filler | xargs -I {} kubectl rollout restart {} -n $BRANCH_NAME
-
-          kubectl rollout restart -n $BRANCH_NAME deployment/mark-twap-crank-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/liquidator-global-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/user-pnl-settler-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/pyth-cranker-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/pyth-lazer-cranker-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/pyth-lazer-majors-cranker-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/switchboard-cranker-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/swift-placer-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/switchboard-cranker-exponent-bot
-          kubectl rollout restart -n $BRANCH_NAME deployment/switchboard-cranker-isolated-pool-bot
