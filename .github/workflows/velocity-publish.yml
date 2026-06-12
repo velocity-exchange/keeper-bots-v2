@@ -1,0 +1,74 @@
+# Velocity ECR publishing — tag-driven. Push a vX.Y.Z tag and this builds
+# the tagged commit and pushes keeper-bots-v2:vX.Y.Z to Velocity ECR. Tags
+# there are IMMUTABLE: a published version can never be overwritten —
+# re-releasing means a new tag. Deploying a version is a separate PR in
+# drift-labs/infrastructure-v3 bumping the gitops image pin.
+#
+# Every version lands in non-prod ECR and is copied to prod ECR once the
+# prod account exists (steps gated on VELOCITY_PROD_ECR_PUBLISH_ROLE).
+# The branch-push workflows (master.yml / mainnet-beta.yml) still deploy
+# the OLD drift infra and are untouched; this is the only Velocity path.
+name: Publish Velocity ECR (release tag)
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubicloud
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - name: Configure AWS credentials (non-prod)
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: ${{ vars.VELOCITY_NON_PROD_ECR_PUBLISH_ROLE }}
+          role-session-name: gha-${{ github.run_id }}
+          aws-region: eu-west-1
+
+      - name: Log in to Amazon ECR (non-prod)
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+
+      - name: Build and push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: keeper-bots-v2
+          IMAGE_TAG: ${{ github.ref_name }}
+        with:
+          context: .
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+      # Prod copy — no-ops until the prod account + publish role exist.
+      - name: Configure AWS credentials (prod)
+        if: vars.VELOCITY_PROD_ECR_PUBLISH_ROLE != ''
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        with:
+          role-to-assume: ${{ vars.VELOCITY_PROD_ECR_PUBLISH_ROLE }}
+          role-session-name: gha-${{ github.run_id }}
+          aws-region: eu-west-1
+
+      - name: Log in to Amazon ECR (prod)
+        if: vars.VELOCITY_PROD_ECR_PUBLISH_ROLE != ''
+        id: login-ecr-prod
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+
+      - name: Copy image to prod ECR
+        if: vars.VELOCITY_PROD_ECR_PUBLISH_ROLE != ''
+        env:
+          NONPROD_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          PROD_REGISTRY: ${{ steps.login-ecr-prod.outputs.registry }}
+          ECR_REPOSITORY: keeper-bots-v2
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          docker buildx imagetools create \
+            -t "$PROD_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
+            "$NONPROD_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
