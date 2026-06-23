@@ -2,7 +2,7 @@
 # the tagged commit and pushes keeper-bots-v2:vX.Y.Z to Velocity ECR. Tags
 # there are IMMUTABLE: a published version can never be overwritten —
 # re-releasing means a new tag. Deploying a version is a separate PR in
-# drift-labs/infrastructure-v3 bumping the gitops image pin.
+# velocity-exchange/infrastructure-v3 bumping the gitops image pin.
 #
 # Every version lands in non-prod ECR; the prod-copy steps below are
 # commented out until the prod account exists.
