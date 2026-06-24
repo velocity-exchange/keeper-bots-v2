@@ -688,15 +688,15 @@ export class UserPnlSettlerBot implements Bot {
 					continue;
 				}
 
-				if (perpMarket.amm.fundingPeriod.eq(ZERO)) {
+				if (perpMarket.marketStats.fundingPeriod.eq(ZERO)) {
 					continue;
 				}
 				const currentTs = Date.now() / 1000;
 
 				const timeRemainingTilUpdate = this.getTimeUntilNextFundingUpdate(
 					currentTs,
-					perpMarket.amm.lastFundingRateTs.toNumber(),
-					perpMarket.amm.fundingPeriod.toNumber()
+					perpMarket.lastFundingRateTs.toNumber(),
+					perpMarket.marketStats.fundingPeriod.toNumber()
 				);
 				logger.info(
 					`${logPrefix} Perp market ${perpMarket.marketIndex} timeRemainingTilUpdate=${timeRemainingTilUpdate}`
@@ -705,8 +705,8 @@ export class UserPnlSettlerBot implements Bot {
 					logger.info(
 						`${logPrefix} Perp market ${
 							perpMarket.marketIndex
-						} lastFundingRateTs: ${perpMarket.amm.lastFundingRateTs.toString()}, fundingPeriod: ${perpMarket.amm.fundingPeriod.toString()}, lastFunding+Period: ${perpMarket.amm.lastFundingRateTs
-							.add(perpMarket.amm.fundingPeriod)
+						} lastFundingRateTs: ${perpMarket.lastFundingRateTs.toString()}, fundingPeriod: ${perpMarket.marketStats.fundingPeriod.toString()}, lastFunding+Period: ${perpMarket.lastFundingRateTs
+							.add(perpMarket.marketStats.fundingPeriod)
 							.toString()} vs. currTs: ${currentTs.toString()}`
 					);
 					try {
@@ -728,7 +728,7 @@ export class UserPnlSettlerBot implements Bot {
 						ixs.push(
 							await this.driftClient.getUpdateFundingRateIx(
 								perpMarket.marketIndex,
-								perpMarket.amm.oracle
+								perpMarket.oracle
 							)
 						);
 

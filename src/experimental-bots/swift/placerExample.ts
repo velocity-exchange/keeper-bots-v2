@@ -20,7 +20,6 @@ import {
 	PRICE_PRECISION,
 	PriorityFeeSubscriberMap,
 	PublicKey,
-	ReferrerInfo,
 	ReferrerMap,
 	SignedMsgOrderParamsDelegateMessage,
 	SignedMsgOrderParamsMessage,
@@ -298,7 +297,7 @@ export class SwiftPlacer {
 						immediateOrCancel: false,
 						direction: signedMsgOrderParams.direction,
 						postOnly: false,
-						oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? 0,
+						oraclePriceOffset: signedMsgOrderParams.oraclePriceOffset ?? ZERO,
 						maxTs: signedMsgOrderParams.maxTs ?? ZERO,
 						reduceOnly: signedMsgOrderParams.reduceOnly ?? false,
 						triggerCondition:
@@ -329,21 +328,11 @@ export class SwiftPlacer {
 						});
 					}
 
-					let referrerInfo: ReferrerInfo | undefined;
-					try {
-						referrerInfo = await this.referrerMap?.mustGet(
-							takerUserAccount.authority.toString()
-						);
-					} catch (e) {
-						logger.warn(`getNodeFillInfo: Failed to get referrer info: ${e}`);
-					}
-
 					let fillIx = await this.driftClient.getFillPerpOrderIx(
 						takerUserPubkey,
 						takerUserAccount,
 						signedMsgOrder,
 						makerInfos,
-						referrerInfo,
 						undefined,
 						true
 					);
@@ -370,7 +359,6 @@ export class SwiftPlacer {
 							takerUserAccount,
 							signedMsgOrder,
 							makerInfos,
-							referrerInfo,
 							undefined,
 							true
 						);

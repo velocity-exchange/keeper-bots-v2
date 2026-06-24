@@ -136,8 +136,8 @@ export class DriftStateWatcher {
 						break;
 					}
 
-					const newPerpOracle = perpMarket.amm.oracle;
-					const lastPerpOracle = lastPerpMarket.amm.oracle;
+					const newPerpOracle = perpMarket.oracle;
+					const lastPerpOracle = lastPerpMarket.oracle;
 					if (!newPerpOracle.equals(lastPerpOracle)) {
 						perpMarketStatus = true;
 						message += `Perp oracle changed: (marketIndex: ${

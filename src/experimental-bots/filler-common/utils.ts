@@ -73,6 +73,7 @@ const serializeOrder = (order: Order): SerializedOrder => {
 		auctionStartPrice: order.auctionStartPrice?.toString('hex'),
 		auctionEndPrice: order.auctionEndPrice?.toString('hex'),
 		maxTs: order.maxTs?.toString('hex'),
+		oraclePriceOffset: order.oraclePriceOffset?.toString('hex'),
 	};
 };
 
@@ -155,6 +156,7 @@ export const deserializeOrder = (serializedOrder: SerializedOrder) => {
 		auctionStartPrice: new BN(serializedOrder.auctionStartPrice, 'hex'),
 		auctionEndPrice: new BN(serializedOrder.auctionEndPrice, 'hex'),
 		maxTs: new BN(serializedOrder.maxTs, 'hex'),
+		oraclePriceOffset: new BN(serializedOrder.oraclePriceOffset, 'hex'),
 	};
 };
 

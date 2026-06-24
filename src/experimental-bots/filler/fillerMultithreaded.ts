@@ -1074,7 +1074,7 @@ export class FillerMultithreaded {
 
 		if (
 			isVariant(
-				this.driftClient.getPerpMarketAccount(marketIndex)?.amm.oracleSource,
+				this.driftClient.getPerpMarketAccount(marketIndex)?.oracleSource,
 				'prelaunch'
 			)
 		) {
@@ -1084,7 +1084,7 @@ export class FillerMultithreaded {
 		let pythIxs: TransactionInstruction[] = [];
 		if (
 			isVariant(
-				this.driftClient.getPerpMarketAccount(marketIndex)?.amm.oracleSource,
+				this.driftClient.getPerpMarketAccount(marketIndex)?.oracleSource,
 				'pythLazer'
 			)
 		) {
@@ -1549,7 +1549,6 @@ export class FillerMultithreaded {
 					takerUser!,
 					nodeToFill.node.order!,
 					makers.map((m) => m.data),
-					referrerInfo,
 					this.subaccount,
 					isSignedMsg
 				);
@@ -1754,7 +1753,6 @@ export class FillerMultithreaded {
 			takerUser,
 			takerUserPubKey,
 			takerUserSlot,
-			referrerInfo,
 			marketType,
 			takerStatsPubKey,
 			isSignedMsg,
@@ -1834,7 +1832,6 @@ export class FillerMultithreaded {
 			takerUser!,
 			nodeToFill.node.order!,
 			makerInfos.map((m) => m.data),
-			referrerInfo,
 			this.subaccount,
 			isSignedMsg
 		);

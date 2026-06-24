@@ -322,6 +322,8 @@ export class JitMaker implements Bot {
 
 		const [ammBid, ammAsk] = calculateBidAskPrice(
 			perpMarketAccount.amm,
+			perpMarketAccount.marketStats,
+			perpMarketAccount.totalExchangeFee,
 			this.driftClient.getMMOracleDataForPerpMarket(perpIdx),
 			true
 		);
